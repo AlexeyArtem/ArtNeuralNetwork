@@ -19,6 +19,6 @@ namespace ArtNeuralNetwork
 
         public Neuron Input { get; }
         public Neuron Output { get; }
-        public double Weight { get; private set; }
+        public double Weight { get; set; }
     }
 }

@@ -8,19 +8,21 @@ namespace ArtNeuralNetwork
 {
     class Neuron
     {
-        public Neuron(double value)
-        {
-            Value = value;
-        }
-
+        private static readonly double a = 0.5;
+        
         public Neuron() { }
 
         public double Value { get; set; }
+        public double MeanError { get; set; }
 
         public void Activate(double input) 
         {
-            if (input >= 0) Value = 1;
-            else Value = 0;
+            //Сигмоида
+            Value = 1 / (1 + Math.Exp(-a * input));
+
+            //ReLU
+            //if (input < 0) Value = 0;
+            //else Value = input * a;
         }
     }
 }
