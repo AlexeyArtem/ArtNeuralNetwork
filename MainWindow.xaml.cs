@@ -28,11 +28,11 @@ namespace ArtNeuralNetwork
         public MainWindow()
         {
             InitializeComponent();
-            neuralNet = new NeuralNetwork(5, 1);
+            neuralNet = new NeuralNetwork(5, 1, 6, 5);
 
         }
 
-        private Dictionary<double[], int> ExportExcelDataSet()
+        private Dictionary<double[], double> ExportExcelDataSet()
         {
             OpenFileDialog ofd = new OpenFileDialog();
             ofd.DefaultExt = "*.xls;*.xlsx";
@@ -40,14 +40,13 @@ namespace ArtNeuralNetwork
 
             ofd.ShowDialog();
 
-            //if (!(ofd.ShowDialog() == DialogResult.HasValue)) // если файл БД не выбран -> Выход
-            //    return null;
+            //if (!(ofd.ShowDialog() == DialogResult.HasValue)) return null;
 
             Excel.Application excel = null;
             Excel.Workbook workbook = null;
             Excel.Workbooks workbooks = null;
             Excel.Worksheet workSheet = null;
-            Dictionary<double[], int> dataSet = new Dictionary<double[], int>();
+            var dataSet = new Dictionary<double[], double>();
             try
             {
                 excel = new Excel.Application();
@@ -62,12 +61,12 @@ namespace ArtNeuralNetwork
                 for (int j = 2; j <= colums; j++)
                 {
                     List<double> inputParameters = new List<double>();
-                    int exceptedValue = 0;
+                    double exceptedValue = 0;
                     for (int i = 2; i <= rows; i++)
                     {
                         if (i == rows)
                         {
-                            int.TryParse(workSheet.Cells[i, j].Text.ToString(), out exceptedValue);
+                            double.TryParse(workSheet.Cells[i, j].Text.ToString(), out exceptedValue);
                             dataSet.Add(inputParameters.ToArray(), exceptedValue);
                             break;
                         }
@@ -91,10 +90,10 @@ namespace ArtNeuralNetwork
                 Marshal.ReleaseComObject(workbook);
                 Marshal.ReleaseComObject(workbooks);
                 Marshal.ReleaseComObject(excel);
-                //workSheet = null;
-                //workbook = null;
-                //workbooks = null;
-                //excel = null;
+                workSheet = null;
+                workbook = null;
+                workbooks = null;
+                excel = null;
 
                 //GC.Collect();
             }
@@ -109,8 +108,8 @@ namespace ArtNeuralNetwork
             {
                 if (uI is CheckBox checkBox)
                 {
-                    double value = 0.1;
-                    if ((bool)checkBox.IsChecked) value = 0.9;
+                    double value = 0;
+                    if ((bool)checkBox.IsChecked) value = 1;
 
                     dataParameters.Add(value);
                 }
@@ -122,19 +121,19 @@ namespace ArtNeuralNetwork
         private void btGetResult_Click(object sender, RoutedEventArgs e)
         {
             double[] data = CollectData();
-            int result = neuralNet.GetResult(data);
+            double result = neuralNet.GetResult(data);
 
             switch (result) 
             {
-                case (int)TypesPaintings.Portrait:
+                case double res when res <= 0.2:
                     tbResult.Text = "портрет.";
                     break;
 
-                case (int)TypesPaintings.Landscape:
+                case double res when res > 0.2 && res <= 0.7:
                     tbResult.Text = "пейзаж.";
                     break;
 
-                case (int)TypesPaintings.StillLife:
+                case double res when res > 0.7:
                     tbResult.Text = "натюрморт.";
                     break;
                 default:
@@ -145,8 +144,13 @@ namespace ArtNeuralNetwork
 
         private void miLoadData_Click(object sender, RoutedEventArgs e)
         {
-            Dictionary<double[], int> dataSet = ExportExcelDataSet();
-            neuralNet.Train(dataSet);
+            Dictionary<double[], double> dataSet = ExportExcelDataSet();
+            
+            int epochs = 100;
+            for (int i = 0; i < epochs; i++)
+            {
+                neuralNet.Train(dataSet);
+            }
         }
     }
 }

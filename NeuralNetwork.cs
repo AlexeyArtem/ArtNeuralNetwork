@@ -58,35 +58,10 @@ namespace ArtNeuralNetwork
                     Relations.Add(nOutput, relations);
                 }
             }
-        }
-
-        private double[] GetNormalizeData(double[] data, double min, double max)
-        {
-            double[] result = new double[data.Length];
-            for (int i = 0; i < result.Length; i++)
-            {
-                result[i] = 2 * (data[i] - min) / (max - min) - 1;
-            }
-
-            return result;
-        }
-
-        private double[] SoftMax(double[] data) 
-        {
-            double[] p = new double[data.Length];
-            for (int i = 0; i < p.Length; i++)
-            {
-                double sum = 0;
-                foreach (double value in data)
-                    sum += Math.Exp(value);
-                p[i] = Math.Exp(data[i]) / sum;
-            }
-
-            return p;
-        }
+        }        
 
         //Прямое распространение
-        private List<double> InitializeForwardPropagation(double[] inputs) 
+        private void InitializeForwardPropagation(double[] inputs) 
         {
             if (inputs.Length != InputLayer.Count) throw new Exception("Количество входных значений не совпадает с количеством входных нейронов");
 
@@ -103,47 +78,13 @@ namespace ArtNeuralNetwork
                     sum += r.Input.Value * r.Weight;
                 }
 
-                if (OutputLayer.Contains(n))
-                {
-                    n.Value = sum;
-                    continue;
-                }
-
                 n.Activate(sum);
             }
-
-            List<double> result = new List<double>();
-            foreach (Neuron n in OutputLayer)
-                result.Add(n.Value);
-
-            //Преобразование выходных данных в вероятности
-            //double[] p = SoftMax(result.ToArray()); //Вектор вероятностей
-
-            //for (int i = 0; i < p.Length; i++)
-            //{
-            //    OutputLayer[i].Value = p[i];
-            //}
-
-            return result;
         }
 
         //Обратное распространение
-        private void InitializeBackPropagation(int expectedResult)
+        private void InitializeBackPropagation(double expectedResult)
         {
-            //double[] expectedP = new double[OutputLayer.Count];
-            //for (int i = 0; i < expectedP.Length; i++)
-            //{
-            //    double value = 0;
-            //    if (i == expectedResult - 1) value = 1;
-                
-            //    expectedP[i] = value;
-            //}
-
-            //for (int i = 0; i < expectedP.Length; i++)
-            //{
-            //    OutputLayer[i].MeanError = expectedP[i] - OutputLayer[i].Value;
-            //}
-
             foreach (Neuron n in OutputLayer)
             {
                 n.MeanError = expectedResult - n.Value;
@@ -180,30 +121,27 @@ namespace ArtNeuralNetwork
             }
         }
 
-        //Получение результата, т.е. номера класса классифицируемых объектов
-        public int GetResult(double[] inputs) 
+        //Получение результата
+        public double GetResult(double[] inputs) 
         {
-            List<double> resultValues = InitializeForwardPropagation(inputs);
-            
-            if (resultValues.Count == 1)
+            InitializeForwardPropagation(inputs);
+            if (OutputLayer.Count > 1)
             {
-                int resultValue = (int)Math.Round(resultValues[0], MidpointRounding.AwayFromZero);
-                return resultValue;
+                return OutputLayer.IndexOf(OutputLayer.Max());
             }
             else 
             {
-                int resultClass = resultValues.IndexOf(resultValues.Max());
-                return resultClass + 1;
+                return OutputLayer[0].Value;
             }
         }
 
         //Метод обучения нейронной сети по заданному набору данных
         //На вход словарь, где ключ - массив входных параметров, а значение - ожидаемый результат для заданных входных параметров
-        public void Train(Dictionary<double[], int> dataSet) 
+        public void Train(Dictionary<double[], double> dataSet) 
         {
             foreach (var inputs in dataSet.Keys) 
             {
-                int expectedResult = dataSet[inputs];
+                double expectedResult = dataSet[inputs];
                 
                 InitializeForwardPropagation(inputs);
                 InitializeBackPropagation(expectedResult);
