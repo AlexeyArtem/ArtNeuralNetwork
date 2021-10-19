@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace ArtNeuralNetwork
 {
+    [Serializable]
     class Relation
     {
         private static Random random = new Random();

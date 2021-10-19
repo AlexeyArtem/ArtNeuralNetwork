@@ -1,0 +1,23 @@
+﻿<Window x:Class="ArtNeuralNetwork.SaveListWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ArtNeuralNetwork"
+        mc:Ignorable="d"
+        Title="Загрузка" Height="225" Width="259" ResizeMode="CanMinimize" WindowStartupLocation="CenterScreen">
+    <Window.Resources>
+        <Style x:Key="StyleInputElement">
+            <Setter Property="FrameworkElement.Height" Value="35"/>
+            <Setter Property="FrameworkElement.Margin" Value="20,0"/>
+        </Style>
+    </Window.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="3.7*"></RowDefinition>
+            <RowDefinition Height="1.4*"></RowDefinition>
+        </Grid.RowDefinitions>
+        <ListBox x:Name="listBoxSaves" Margin="20,10,20,10"></ListBox>
+        <Button Grid.Row="1" x:Name="btLoad" Style="{StaticResource ResourceKey=StyleInputElement}" Click="btLoad_Click">Загрузить</Button>
+    </Grid>
+</Window>

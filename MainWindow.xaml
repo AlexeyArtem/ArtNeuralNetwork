@@ -13,8 +13,10 @@
             <RowDefinition Height="16*"></RowDefinition>
         </Grid.RowDefinitions>
         <Menu Grid.Row="0">
-            <MenuItem x:Name="miLoadData" Click="miLoadData_Click" Header="Загрузить набор данных"></MenuItem>
-            <MenuItem Header="Обучение"></MenuItem>
+            <MenuItem x:Name="miCreateNetwork" Header="Создать новую сеть" Click="miCreateNetwork_Click"></MenuItem>
+            <MenuItem x:Name="miSaveNetwork" Header="Сохранить сеть" Click="miSaveNetwork_Click"></MenuItem>
+            <MenuItem x:Name="miOpenSaves" Header="Сохраненные сети" Click="miOpenSaves_Click"></MenuItem>
+            <MenuItem x:Name="miTraining" Header="Обучение" Click="miTraining_Click"></MenuItem>
         </Menu>
         <StackPanel Margin="0,10,0,0" Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center">
             <GroupBox Margin="0,0,10,0" Header="Параметры" HorizontalAlignment="Center" Width="240">

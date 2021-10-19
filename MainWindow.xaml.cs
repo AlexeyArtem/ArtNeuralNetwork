@@ -14,7 +14,9 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.IO;
 using Excel = Microsoft.Office.Interop.Excel;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace ArtNeuralNetwork
 {
@@ -23,82 +25,20 @@ namespace ArtNeuralNetwork
     /// </summary>
     public partial class MainWindow : Window
     {
-        NeuralNetwork neuralNet;
+        NeuralNetwork neuralNetwork;
 
         public MainWindow()
         {
             InitializeComponent();
-            neuralNet = new NeuralNetwork(5, 1, 6, 5);
-
-        }
-
-        private Dictionary<double[], double> ExportExcelDataSet()
-        {
-            OpenFileDialog ofd = new OpenFileDialog();
-            ofd.DefaultExt = "*.xls;*.xlsx";
-            ofd.Title = "Выберите файл обучающей выборки";
-
-            ofd.ShowDialog();
-
-            //if (!(ofd.ShowDialog() == DialogResult.HasValue)) return null;
-
-            Excel.Application excel = null;
-            Excel.Workbook workbook = null;
-            Excel.Workbooks workbooks = null;
-            Excel.Worksheet workSheet = null;
-            var dataSet = new Dictionary<double[], double>();
             try
             {
-                excel = new Excel.Application();
-                workbooks = excel.Workbooks;
-                workbook = workbooks.Open(ofd.FileName);
-                workSheet = (Excel.Worksheet)workbook.Sheets[1];
-                var lastCell = workSheet.Cells.SpecialCells(Excel.XlCellType.xlCellTypeLastCell);
-
-                int colums = lastCell.Column;
-                int rows = 7;
-
-                for (int j = 2; j <= colums; j++)
-                {
-                    List<double> inputParameters = new List<double>();
-                    double exceptedValue = 0;
-                    for (int i = 2; i <= rows; i++)
-                    {
-                        if (i == rows)
-                        {
-                            double.TryParse(workSheet.Cells[i, j].Text.ToString(), out exceptedValue);
-                            dataSet.Add(inputParameters.ToArray(), exceptedValue);
-                            break;
-                        }
-
-                        if (!double.TryParse(workSheet.Cells[i, j].Text.ToString(), out double value)) break;
-
-                        inputParameters.Add(value);
-                    }
-                }
+                neuralNetwork = NeuralNetworkSaves.Load(NeuralNetworkSaves.Saves[0]);
             }
-            catch (Exception ex)
+            catch
             {
-                MessageBox.Show("Неверное заполнение файла данными. Подробнее об ошибке: " + ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                neuralNetwork = new NeuralNetwork(5, 1, 6, 5);
             }
-            finally 
-            {
-                int temp = dataSet.Count;
-                workbook?.Close(false, Type.Missing, Type.Missing);
-                workbooks?.Close();
-                excel?.Quit();
-                Marshal.ReleaseComObject(workbook);
-                Marshal.ReleaseComObject(workbooks);
-                Marshal.ReleaseComObject(excel);
-                workSheet = null;
-                workbook = null;
-                workbooks = null;
-                excel = null;
 
-                //GC.Collect();
-            }
-            
-            return dataSet;
         }
 
         private double[] CollectData() 
@@ -121,19 +61,19 @@ namespace ArtNeuralNetwork
         private void btGetResult_Click(object sender, RoutedEventArgs e)
         {
             double[] data = CollectData();
-            double result = neuralNet.GetResult(data);
+            TypesPaintings? type = neuralNetwork.GetTypesPaintings(data);
 
-            switch (result) 
+            switch (type) 
             {
-                case double res when res <= 0.2:
+                case TypesPaintings.Portrait:
                     tbResult.Text = "портрет.";
                     break;
 
-                case double res when res > 0.2 && res <= 0.7:
+                case TypesPaintings.Landscape:
                     tbResult.Text = "пейзаж.";
                     break;
 
-                case double res when res > 0.7:
+                case TypesPaintings.StillLife:
                     tbResult.Text = "натюрморт.";
                     break;
                 default:
@@ -142,15 +82,30 @@ namespace ArtNeuralNetwork
             }
         }
 
-        private void miLoadData_Click(object sender, RoutedEventArgs e)
+        private void miSaveNetwork_Click(object sender, RoutedEventArgs e)
         {
-            Dictionary<double[], double> dataSet = ExportExcelDataSet();
-            
-            int epochs = 100;
-            for (int i = 0; i < epochs; i++)
+            new SaveWindow(neuralNetwork).ShowDialog();
+        }
+
+        private void miTraining_Click(object sender, RoutedEventArgs e)
+        {
+            new TrainingWindow(neuralNetwork).ShowDialog();
+        }
+
+        private void miOpenSaves_Click(object sender, RoutedEventArgs e)
+        {
+            SaveListWindow window = new SaveListWindow();
+            window.Closed += delegate (object s, EventArgs args)
             {
-                neuralNet.Train(dataSet);
-            }
+                if (window.LoadedNeuralNetwork != null) neuralNetwork = window.LoadedNeuralNetwork;
+            };
+            window.ShowDialog();
+        }
+
+        private void miCreateNetwork_Click(object sender, RoutedEventArgs e)
+        {
+            neuralNetwork = new NeuralNetwork(5, 1, 6, 5);
+            MessageBox.Show("Новая нейросеть успешно создана", "Уведомление", MessageBoxButton.OK, MessageBoxImage.Information);
         }
     }
 }

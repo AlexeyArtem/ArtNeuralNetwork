@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace ArtNeuralNetwork
 {
+    [Serializable]
     class Neuron
     {
         private static readonly double a = 0.5;
@@ -17,12 +18,7 @@ namespace ArtNeuralNetwork
 
         public void Activate(double input) 
         {
-            //Сигмоида
             Value = 1 / (1 + Math.Exp(-a * input));
-
-            //ReLU
-            //if (input < 0) Value = 0;
-            //else Value = input * a;
         }
     }
 }
